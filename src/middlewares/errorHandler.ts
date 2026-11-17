@@ -1,14 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-
-export class HttpError extends Error {
-  public statusCode: number;
-
-  constructor(statusCode: number, message: string) {
-    super(message);
-    this.statusCode = statusCode;
-    Object.setPrototypeOf(this, HttpError.prototype);
-  }
-}
+import { HttpError } from "../errors/HttpError.js";
 
 export const errorHandler = (
   error: unknown,

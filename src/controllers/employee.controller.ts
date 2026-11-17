@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { EmployeeService } from "../services/employee.service.js";
+import { IEmployeeService } from "../services/employee.service.js";
 
 export class EmployeeController {
-  private service: EmployeeService;
+  private service: IEmployeeService;
 
-  constructor(service: EmployeeService) {
+  constructor(service: IEmployeeService) {
     this.service = service;
   }
 

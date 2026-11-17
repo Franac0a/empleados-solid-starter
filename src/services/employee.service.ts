@@ -1,52 +1,25 @@
-import { HttpError } from "../middlewares/errorHandler.js";
+import { HttpError } from "../errors/HttpError.js";
 import {
   CreateEmployeeInput,
   EmployeeDocument,
 } from "../models/employee.model.js";
 import { IEmployeeRepository } from "../repository/employee.repository.js";
+import { calculateFinalSalary } from "../utils/salary.js";
+import { validateCreateEmployeeInput } from "../validators/employee.validator.js";
 
-export class EmployeeService {
-  private repository: IEmployeeRepository;
+export interface IEmployeeService {
+  createEmployee(input: CreateEmployeeInput): Promise<EmployeeDocument>;
+  getAllEmployees(): Promise<EmployeeDocument[]>;
+  getEmployeeById(id: string): Promise<EmployeeDocument>;
+}
 
-  constructor(repository: IEmployeeRepository) {
-    this.repository = repository;
-  }
-
-  private validateInput(data: CreateEmployeeInput): void {
-    const { name, position, baseSalary, yearsOfService } = data;
-
-    if (!name || !position) {
-      throw new HttpError(400, "Nombre y puesto son obligatorios");
-    }
-
-    if (typeof baseSalary !== "number" || baseSalary <= 0) {
-      throw new HttpError(400, "El salario base debe ser mayor a 0");
-    }
-
-    if (
-      typeof yearsOfService !== "number" ||
-      yearsOfService < 0 ||
-      !Number.isInteger(yearsOfService)
-    ) {
-      throw new HttpError(
-        400,
-        "La antigüedad debe ser un entero mayor o igual a 0",
-      );
-    }
-  }
-
-  private calculateFinalSalary(
-    baseSalary: number,
-    yearsOfService: number,
-  ): number {
-    const bonus = baseSalary * 0.02 * yearsOfService;
-    return baseSalary + bonus;
-  }
+export class EmployeeService implements IEmployeeService {
+  constructor(private readonly repository: IEmployeeRepository) {}
 
   async createEmployee(input: CreateEmployeeInput): Promise<EmployeeDocument> {
-    this.validateInput(input);
+    validateCreateEmployeeInput(input);
 
-    const finalSalary = this.calculateFinalSalary(
+    const finalSalary = calculateFinalSalary(
       input.baseSalary,
       input.yearsOfService,
     );
@@ -60,13 +33,13 @@ export class EmployeeService {
     });
 
     console.log(
-      `Empleado creado: ${employee.name} salario final: ${employee.finalSalary}`,
+      `Empleado creado: ${employee.name} - salario final: ${employee.finalSalary}`,
     );
     return employee;
   }
 
   async getAllEmployees(): Promise<EmployeeDocument[]> {
-    return await this.repository.findAll();
+    return this.repository.findAll();
   }
 
   async getEmployeeById(id: string): Promise<EmployeeDocument> {
